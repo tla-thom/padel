@@ -1,13 +1,24 @@
 
-
 {% liquid
   assign product = closest.product
+  assign card_variant = nil
+
+  if card_variant_id != blank
+    assign card_variant_id_string = card_variant_id | append: ''
+    for variant in product.variants
+      assign variant_id_string = variant.id | append: ''
+      if variant_id_string == card_variant_id_string
+        assign card_variant = variant
+        break
+      endif
+    endfor
+  endif
 -%}
 
 {% capture children %}
   {% content_for 'blocks',
     closest.product: product,
-    card_variant: card_variant,
+    card_variant_id: card_variant_id,
     card_color_value: card_color_value
   %}
 {% endcapture %}

@@ -100,13 +100,21 @@
   # Applying a filter updates the displayed image, so a swatch can help communicate the change.
   assign allow_preselection = false
 
-  if product_resource.selected_variant or has_option_selected or card_color_value != blank
+  if product_resource.selected_variant or has_option_selected or card_color_value != blank or card_variant != blank
     assign allow_preselection = true
   endif
 
   assign swatch_variant_json = product_resource.selected_or_first_available_variant
   if card_variant != blank
     assign swatch_variant_json = card_variant
+  endif
+
+  # Unique radio name per card so color-split cards don't share one checked state
+  assign swatch_radio_suffix = 'default'
+  if card_variant != blank
+    assign swatch_radio_suffix = card_variant.id
+  elsif card_color_value != blank
+    assign swatch_radio_suffix = card_color_value | handleize
   endif
 %}
 
@@ -193,7 +201,7 @@
               >
                 <input
                   type="radio"
-                  name="{{ product_option.name | escape }}-{{ product_resource.id }}-swatch"
+                  name="{{ product_option.name | escape }}-{{ product_resource.id }}-{{ swatch_radio_suffix }}-swatch"
                   value="{{ product_option_value | escape }}"
                   aria-label="{{ product_option_value.name }}"
                   data-input-id="{{ product_option.position }}-{{ forloop.index0 }}"
@@ -205,14 +213,14 @@
                     {% liquid
                       assign should_check_swatch = false
 
-                      if card_variant != blank and is_color_option
+                      if card_color_value != blank and product_option_value.name == card_color_value
+                        assign should_check_swatch = true
+                      elsif card_variant != blank and is_color_option
                         assign card_variant_color_value = card_variant[swatch_option_key]
                         if product_option_value.name == card_variant_color_value
                           assign should_check_swatch = true
                         endif
-                      elsif card_color_value != blank and product_option_value.name == card_color_value
-                        assign should_check_swatch = true
-                      elsif card_color_value == blank and product_option_value.selected
+                      elsif card_color_value == blank and card_variant == blank and product_option_value.selected
                         assign should_check_swatch = true
                       endif
                     %}

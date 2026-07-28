@@ -12,6 +12,17 @@
     endif
     assign product_title = '<p role="heading" aria-level="3">' | append: display_title | append: '</p>'
     assign title_variant_url = closest.product.selected_or_first_available_variant.url
+    assign card_variant = nil
+    if card_variant_id != blank
+      assign card_variant_id_string = card_variant_id | append: ''
+      for variant in closest.product.variants
+        assign variant_id_string = variant.id | append: ''
+        if variant_id_string == card_variant_id_string
+          assign card_variant = variant
+          break
+        endif
+      endfor
+    endif
     if card_variant != blank
       assign title_variant_url = card_variant.url
     endif
