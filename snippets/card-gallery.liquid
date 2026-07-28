@@ -88,11 +88,15 @@
       assign variant_images = product.images | where: 'attached_to_variant?', true | map: 'src'
       assign generic_media_size = product.media.size | minus: variant_images.size
 
-      # Sort media so product.featured_media.preview_image comes first as that is the most relevant image to display
-      # product.featured_media updates based on search context and filters applied
+      # Sort media so the card variant's featured media comes first on color-split collection cards.
+      assign card_gallery_featured_media = product.featured_media
 
-      assign other_media = product.media | reject: 'src', product.featured_media
-      assign media_list_to_show = product.featured_media | concat: other_media
+      if collection_card_variant != blank and collection_card_variant.featured_media != blank
+        assign card_gallery_featured_media = collection_card_variant.featured_media
+      endif
+
+      assign other_media = product.media | reject: 'id', card_gallery_featured_media.id
+      assign media_list_to_show = card_gallery_featured_media | concat: other_media
 
       if product.media.size > 2 and generic_media_size > 0
         assign show_arrows = true
@@ -116,8 +120,7 @@
           if variant_images contains media.src
             assign attributes = 'variant-image'
 
-            if forloop.first == false
-              # hide all variant images that aren't the first one
+            if media.id != card_gallery_featured_media.id
               assign hidden = true
             endif
           endif
@@ -160,8 +163,8 @@
     <a
       class="contents"
       ref="cardGalleryLink"
-      href="{{ product.selected_or_first_available_variant.url }}"
-      aria-label="{{- product.title -}}"
+      href="{% if collection_card_variant != blank %}{{ collection_card_variant.url }}{% else %}{{ product.selected_or_first_available_variant.url }}{% endif %}"
+      aria-label="{{- product.title -}}{% if collection_card_color_value != blank %} — {{ collection_card_color_value }}{% endif %}"
     >
       {% render 'slideshow',
         ref: 'slideshow',

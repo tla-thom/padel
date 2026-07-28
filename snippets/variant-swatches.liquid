@@ -5,6 +5,8 @@
 
   @param {object} product_resource - The product object, which contains variants and options.
   @param {boolean} [has_option_selected] - Whether to render the swatches in a pre-selected state.
+  @param {string} [card_color_value] - Pre-select the swatch matching this color on split collection cards.
+  @param {object} [card_variant] - The variant this collection card represents.
 
   @example
   {% render 'variant-swatches', product_resource: product %}
@@ -98,8 +100,13 @@
   # Applying a filter updates the displayed image, so a swatch can help communicate the change.
   assign allow_preselection = false
 
-  if product_resource.selected_variant or has_option_selected
+  if product_resource.selected_variant or has_option_selected or card_color_value != blank
     assign allow_preselection = true
+  endif
+
+  assign swatch_variant_json = product_resource.selected_or_first_available_variant
+  if card_variant != blank
+    assign swatch_variant_json = card_variant
   endif
 %}
 
@@ -194,8 +201,12 @@
                   data-option-value-id="{{ product_option_value.id }}"
                   data-option-available="{{ product_option_value.available }}"
                   data-connected-product-url="{{ product_option_value.product_url }}"
-                  {% if allow_preselection and product_option_value.selected %}
-                    checked
+                  {% if allow_preselection %}
+                    {% if card_color_value != blank and product_option_value.name == card_color_value %}
+                      checked
+                    {% elsif card_color_value == blank and product_option_value.selected %}
+                      checked
+                    {% endif %}
                   {% endif %}
                   data-variant-id="{{ first_available_variant.id | default: product_option_value.variant.id }}"
                   data-first-available-or-first-variant-id="{{ first_available_variant.id | default: product_option_value.variant.id }}"
@@ -223,7 +234,7 @@
       </fieldset>
     {%- endfor -%}
     <script type="application/json">
-      {{ product_resource.selected_or_first_available_variant | json }}
+      {{ swatch_variant_json | json }}
     </script>
   </form>
 </swatches-variant-picker-component>

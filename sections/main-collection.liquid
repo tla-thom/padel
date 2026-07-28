@@ -50,18 +50,78 @@
 
     {% paginate collection.products by products_per_page %}
       {% capture children %}
+        {% assign card_index = 0 %}
         {% for product in collection.products %}
-          <li
-            id="{{ section.id }}-{{ product.id }}"
-            class="product-grid__item product-grid__item--{{ forloop.index0 }}"
-            data-page="{{ paginate.current_page }}"
-            data-product-id="{{ product.id }}"
-            ref="cards[]"
-          >
-            {% # theme-check-disable %}
-            {% content_for 'block', type: '_product-card', id: 'product-card', closest.product: product %}
-            {% # theme-check-enable %}
-          </li>
+          {% liquid
+            assign color_option = nil
+            assign has_color_option = false
+
+            for product_option in product.options_with_values
+              assign option_name_downcase = product_option.name | downcase
+              if option_name_downcase == 'color' or option_name_downcase == 'colour'
+                assign color_option = product_option
+                assign has_color_option = true
+                break
+              endif
+            endfor
+          %}
+
+          {% if has_color_option %}
+            {% for color_value in color_option.values %}
+              {% liquid
+                assign collection_card_variant = nil
+                assign swatch_option_key = 'option' | append: color_option.position
+
+                for variant in product.variants
+                  if variant[swatch_option_key] == color_value.name
+                    if variant.available
+                      assign collection_card_variant = variant
+                      break
+                    elsif collection_card_variant == nil
+                      assign collection_card_variant = variant
+                    endif
+                  endif
+                endfor
+              %}
+
+              {% if collection_card_variant != blank %}
+                {% liquid
+                  assign collection_card_color_value = color_value.name
+                  assign card_item_id = section.id | append: '-' | append: product.id | append: '-' | append: collection_card_variant.id
+                %}
+                <li
+                  id="{{ card_item_id }}"
+                  class="product-grid__item product-grid__item--{{ card_index }}"
+                  data-page="{{ paginate.current_page }}"
+                  data-product-id="{{ product.id }}"
+                  data-variant-id="{{ collection_card_variant.id }}"
+                  ref="cards[]"
+                >
+                  {% # theme-check-disable %}
+                  {% content_for 'block', type: '_product-card', id: 'product-card', closest.product: product %}
+                  {% # theme-check-enable %}
+                </li>
+                {% assign card_index = card_index | plus: 1 %}
+              {% endif %}
+            {% endfor %}
+          {% else %}
+            {% liquid
+              assign collection_card_variant = nil
+              assign collection_card_color_value = nil
+            %}
+            <li
+              id="{{ section.id }}-{{ product.id }}"
+              class="product-grid__item product-grid__item--{{ card_index }}"
+              data-page="{{ paginate.current_page }}"
+              data-product-id="{{ product.id }}"
+              ref="cards[]"
+            >
+              {% # theme-check-disable %}
+              {% content_for 'block', type: '_product-card', id: 'product-card', closest.product: product %}
+              {% # theme-check-enable %}
+            </li>
+            {% assign card_index = card_index | plus: 1 %}
+          {% endif %}
         {% endfor %}
       {% endcapture %}
 

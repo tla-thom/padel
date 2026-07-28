@@ -5,12 +5,16 @@
   @param {product} product_resource - The product to render
   @param {boolean} [show_unit_price] - Whether to show the unit price
   @param {boolean} [show_sale_price_first] - Whether to show the sale price first
+  @param {object} [card_variant] - Collection card variant for color-split product cards
 {%- enddoc -%}
 
 {%- liquid
   assign show_unit_price = show_unit_price | default: false
   assign show_sale_price_first = show_sale_price_first | default: false
   assign selected_variant = product_resource.selected_or_first_available_variant
+  if card_variant != blank
+    assign selected_variant = card_variant
+  endif
   assign price = selected_variant.price
   assign compare_at_price = selected_variant.compare_at_price
 
@@ -36,8 +40,47 @@
   endif
 
   if is_product_card
-    assign price_min = product_resource.price_min
-    assign price_max = product_resource.price_max
+    if card_variant != blank
+      assign card_color_option_key = nil
+      assign card_color_name = nil
+
+      for product_option in product_resource.options_with_values
+        assign option_name_downcase = product_option.name | downcase
+        if option_name_downcase == 'color' or option_name_downcase == 'colour'
+          assign card_color_option_key = 'option' | append: product_option.position
+          assign card_color_name = card_variant[card_color_option_key]
+          break
+        endif
+      endfor
+
+      if card_color_option_key != blank and card_color_name != blank
+        for variant in product_resource.variants
+          if variant[card_color_option_key] == card_color_name
+            if price_min == nil or variant.price < price_min
+              assign price_min = variant.price
+            endif
+            if price_max == nil or variant.price > price_max
+              assign price_max = variant.price
+            endif
+          endif
+        endfor
+
+        if price_min != nil
+          assign price = price_min
+          assign compare_at_price = selected_variant.compare_at_price
+          assign show_compare_price = false
+          if compare_at_price > price
+            assign show_compare_price = true
+          endif
+        endif
+      else
+        assign price_min = product_resource.price_min
+        assign price_max = product_resource.price_max
+      endif
+    else
+      assign price_min = product_resource.price_min
+      assign price_max = product_resource.price_max
+    endif
     assign has_volume_pricing = product_resource.quantity_price_breaks_configured? | default: false
   else
     # Product page: only use selected variant's pricing
@@ -48,7 +91,10 @@
     endif
   endif
 
-  # Determine if currency code should be shown
+  assign show_color_price_range = false
+  if is_product_card and card_variant != blank and price_min != nil and price_max != nil and price_min != price_max
+    assign show_color_price_range = true
+  endif
   assign use_currency = false
   if product.handle == product_resource.handle
     if settings.currency_code_enabled_product_pages
@@ -87,6 +133,9 @@
     </span>
   {% else %}
     {% comment %} Standard pricing display {% endcomment %}
+    {% if show_color_price_range %}
+      <span class="price">{{ price_min }} - {{ price_max }}</span>
+    {% else %}
     <div
       class="
         price__regular
@@ -125,6 +174,7 @@
         </span>
       {% endif %}
     </div>
+    {% endif %}
   {% endif %}
   {%- if selected_variant.unit_price and show_unit_price %}
     {%- liquid

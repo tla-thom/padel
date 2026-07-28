@@ -449,6 +449,13 @@ export class ProductCard extends ProductCardLink {
       }
     }
 
+    // Color-split collection cards: reset to this card's initial variant image
+    const initialMediaId = this.dataset.initialMediaId;
+    if (initialMediaId) {
+      slideshow.select({ id: initialMediaId }, undefined, { animate: false });
+      return;
+    }
+
     // No variant selected - use initial slide if it's valid
     const initialSlide = slideshow.initialSlide;
     const slideId = initialSlide?.getAttribute('slide-id');
