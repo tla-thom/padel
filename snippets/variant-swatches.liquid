@@ -31,8 +31,30 @@
       calc(var(--product-swatches-padding-inline-end) + var(--focus-outline-offset) + var(--focus-outline-width));
 
     overflow-list::part(list) {
-      gap: var(--gap-sm);
+      gap: 8px;
     }
+  }
+
+  product-card product-swatches swatches-variant-picker-component {
+    margin-block-start: 4px;
+  }
+
+  product-card .variant-option--swatches {
+    margin-top: 0;
+  }
+
+  product-card .variant-option--swatches legend {
+    display: none;
+  }
+
+  product-card .variant-option__button-label--has-swatch:hover {
+    outline: 2px solid rgb(var(--color-foreground-rgb) / 0.35);
+    outline-offset: 2px;
+  }
+
+  product-card .variant-option__button-label--has-swatch:has(:checked) {
+    outline: 2px solid var(--color-foreground);
+    outline-offset: 2px;
   }
 
   swatches-variant-picker-component overflow-list[disabled='true'] {
@@ -96,9 +118,15 @@
     {%- for product_option in product_resource.options_with_values -%}
       {%- liquid
         assign swatch_count = product_option.values | map: 'swatch' | compact | size
+        assign option_name_downcase = product_option.name | downcase
+        assign is_color_option = false
+
+        if option_name_downcase == 'color' or option_name_downcase == 'colour'
+          assign is_color_option = true
+        endif
       -%}
 
-      {% if swatch_count == 0 %}
+      {% if swatch_count == 0 and is_color_option == false %}
         {% continue %}
       {% endif %}
 
@@ -147,10 +175,12 @@
 
             <li class="variant-option__swatch">
               <label
-                data-media-id="{{ featured_media.id }}"
+                {% if featured_media.id != blank %}data-media-id="{{ featured_media.id }}"{% endif %}
                 class="variant-option__button-label variant-option__button-label--has-swatch"
-                on:pointerenter="product-card/previewVariant/{{ featured_media.id }}"
-                on:pointerleave="product-card/resetVariant"
+                {% if featured_media.id != blank %}
+                  on:pointerenter="product-card/previewVariant/{{ featured_media.id }}"
+                  on:pointerleave="product-card/resetVariant"
+                {% endif %}
               >
                 <input
                   type="radio"
@@ -171,6 +201,7 @@
                 {% render 'swatch',
                   swatch: product_option_value.swatch,
                   variant_image: featured_media,
+                  label: product_option_value.name,
                 %}
                 {% render 'strikethrough-variant', product_option: product_option_value %}
               </label>

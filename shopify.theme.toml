@@ -1,0 +1,8 @@
+# Shopify theme environment config
+# Docs: https://shopify.dev/docs/storefronts/themes/tools/cli/environments
+
+[environments.default]
+store = "padeldev.myshopify.com"
+
+# Optional: set after `npm run theme:list` if you want to target a specific theme
+# theme = "123456789012"

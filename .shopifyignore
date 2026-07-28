@@ -1,0 +1,9 @@
+# Dev tooling — not uploaded to Shopify
+node_modules/
+package.json
+package-lock.json
+README.md
+.gitignore
+.nvmrc
+shopify.theme.toml
+.DS_Store

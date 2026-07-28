@@ -23,6 +23,36 @@
     assign swatch_value = 'url(' | append: swatch_image_url | append: ')'
   elsif swatch.color
     assign swatch_value = 'rgb(' | append: swatch.color.rgb | append: ')'
+  elsif label != blank
+    assign color_key = label | downcase | strip
+    case color_key
+      when 'black'
+        assign swatch_value = '#000000'
+      when 'white'
+        assign swatch_value = '#ffffff'
+      when 'red'
+        assign swatch_value = '#cc0000'
+      when 'blue'
+        assign swatch_value = '#0059e0'
+      when 'green'
+        assign swatch_value = '#008060'
+      when 'yellow'
+        assign swatch_value = '#f0ff00'
+      when 'pink'
+        assign swatch_value = '#ffc0cb'
+      when 'purple'
+        assign swatch_value = '#800080'
+      when 'orange'
+        assign swatch_value = '#ff8c00'
+      when 'brown'
+        assign swatch_value = '#8b4513'
+      when 'grey', 'gray'
+        assign swatch_value = '#808080'
+      when 'beige', 'cream', 'tan'
+        assign swatch_value = '#f5f5dc'
+      when 'navy'
+        assign swatch_value = '#001f3f'
+    endcase
   endif
 
   case mode

@@ -1,0 +1,21 @@
+{
+  "name": "padel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Vessel theme customizations for Padel",
+  "scripts": {
+    "shopify": "shopify",
+    "theme:dev": "shopify theme dev --environment default",
+    "theme:push": "shopify theme push --environment default",
+    "theme:pull": "shopify theme pull --environment default",
+    "theme:list": "shopify theme list --environment default",
+    "theme:check": "shopify theme check",
+    "theme:push:unpublished": "shopify theme push --unpublished --environment default"
+  },
+  "engines": {
+    "node": ">=18.12.0"
+  },
+  "devDependencies": {
+    "@shopify/cli": "3.60.0"
+  }
+}

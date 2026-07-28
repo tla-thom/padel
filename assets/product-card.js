@@ -558,6 +558,7 @@ class SwatchesVariantPickerComponent extends VariantPicker {
 
   /**
    * Override the variantChanged method to handle unavailable swatches with available alternatives.
+   * On collection product cards, clicking a swatch navigates to the product with that variant selected.
    * @param {Event} event - The variant change event.
    */
   variantChanged(event) {
@@ -568,6 +569,30 @@ class SwatchesVariantPickerComponent extends VariantPicker {
     const clickedSwatch = event.target;
     const availableCount = parseInt(clickedSwatch.dataset.availableCount || '0');
     const firstAvailableVariantId = clickedSwatch.dataset.firstAvailableOrFirstVariantId;
+
+    // Collection card: navigate to product page with the selected variant
+    if (isSwatchInput && this.parentProductCard instanceof ProductCard) {
+      event.stopPropagation();
+
+      const variantId = firstAvailableVariantId || clickedSwatch.dataset.variantId;
+      const productUrl = this.dataset.productUrl?.split('?')[0];
+
+      if (productUrl && variantId) {
+        const url = new URL(productUrl, window.location.origin);
+        url.searchParams.set('variant', variantId);
+
+        const shouldOpenInNewTab =
+          event instanceof MouseEvent && (event.metaKey || event.ctrlKey || event.shiftKey || event.button === 1);
+
+        if (shouldOpenInNewTab) {
+          window.open(url.href, '_blank');
+        } else {
+          window.location.href = url.href;
+        }
+      }
+
+      return;
+    }
 
     // For swatch inputs, check if we need special handling
     if (isSwatchInput && availableCount > 0 && firstAvailableVariantId) {
