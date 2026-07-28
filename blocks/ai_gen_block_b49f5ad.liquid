@@ -1,0 +1,487 @@
+{% doc %}
+  @prompt
+    Create image grid with 3 items. 2 columns with left column 50% height with two items. add text and button link. also admin for theme colour settings  
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-image-grid-{{ ai_gen_id }} {
+    display: block;
+    width: {{ block.settings.desktop_width_percent }}%;
+    max-width: 100%;
+  }
+
+  .ai-image-grid-container-{{ ai_gen_id }} {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: {{ block.settings.grid_gap }}px;
+  }
+
+  .ai-image-grid-item-{{ ai_gen_id }} {
+    position: relative;
+    overflow: hidden;
+    border-radius: {{ block.settings.border_radius }}px;
+  }
+
+  .ai-image-grid-item-{{ ai_gen_id }}--large {
+    grid-row: span 2;
+  }
+
+  .ai-image-grid-item-wrapper-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 300px;
+    &:before {
+            content:'';
+            display:block;
+            position:absolute;
+            bottom:0;
+            left:0;
+            width:100%;
+            height:35%;
+            background: linear-gradient(0deg,rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
+            z-index:2;
+            opacity:0.6;
+        }
+  }
+
+  .ai-image-grid-item-{{ ai_gen_id }}--large .ai-image-grid-item-wrapper-{{ ai_gen_id }} {
+    min-height: 600px;
+  }
+
+  .ai-image-grid-image-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ai-image-grid-placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    background-color: {{ block.settings.placeholder_bg_color }};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ai-image-grid-placeholder-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;
+    max-width: 200px;
+    max-height: 200px;
+  }
+
+  .ai-image-grid-content-{{ ai_gen_id }} {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index:3;
+    padding: {{ block.settings.content_padding }}px;
+    background: transparent;
+    /*background: {{ block.settings.overlay_color }};*/
+    color: {{ block.settings.text_color }};
+    
+  }
+
+  .ai-image-grid-title-{{ ai_gen_id }} {
+    margin: 0 0 8px 0;
+    font-size: {{ block.settings.title_size }}px;
+    font-weight: 700;
+    color: {{ block.settings.text_color }};
+  }
+
+  .ai-image-grid-description-{{ ai_gen_id }} {
+    margin: 0 0 16px 0;
+    font-size: {{ block.settings.description_size }}px;
+    color: {{ block.settings.text_color }};
+  }
+
+  .ai-image-grid-button-{{ ai_gen_id }} {
+    display: inline-block;
+    padding: 12px 24px;
+    background-color: {{ block.settings.button_bg_color }};
+    color: {{ block.settings.button_text_color }};
+    text-decoration: none;
+    border-radius: {{ block.settings.button_border_radius }}px;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: background-color 0.3s ease;
+  }
+
+  .ai-image-grid-button-{{ ai_gen_id }}:hover {
+    background-color: {{ block.settings.button_hover_bg_color }};
+    color: {{ block.settings.button_hover_text_color }};
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-image-grid-container-{{ ai_gen_id }} {
+      grid-template-columns: 1fr;
+    }
+
+    .ai-image-grid-item-{{ ai_gen_id }}--large {
+      grid-row: span 1;
+    }
+
+    .ai-image-grid-item-{{ ai_gen_id }}--large .ai-image-grid-item-wrapper-{{ ai_gen_id }} {
+      min-height: 300px;
+    }
+  }
+{% endstyle %}
+
+<image-grid-{{ ai_gen_id }} class="ai-image-grid-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <div class="ai-image-grid-container-{{ ai_gen_id }}">
+    <div class="ai-image-grid-item-{{ ai_gen_id }} ai-image-grid-item-{{ ai_gen_id }}--large">
+      <div class="ai-image-grid-item-wrapper-{{ ai_gen_id }}">
+        {% if block.settings.image_1 %}
+          <img
+            src="{{ block.settings.image_1 | image_url: width: 1200 }}"
+            alt="{{ block.settings.image_1.alt | escape }}"
+            loading="lazy"
+            width="{{ block.settings.image_1.width }}"
+            height="{{ block.settings.image_1.height }}"
+            class="ai-image-grid-image-{{ ai_gen_id }}"
+          >
+        {% else %}
+          <div class="ai-image-grid-placeholder-{{ ai_gen_id }}">
+            {{ 'image' | placeholder_svg_tag }}
+          </div>
+        {% endif %}
+        {% if block.settings.title_1 != blank or block.settings.description_1 != blank or block.settings.button_text_1 != blank %}
+          <div class="ai-image-grid-content-{{ ai_gen_id }}">
+            {% if block.settings.title_1 != blank %}
+              <h3 class="ai-image-grid-title-{{ ai_gen_id }}">{{ block.settings.title_1 }}</h3>
+            {% endif %}
+            {% if block.settings.description_1 != blank %}
+              <p class="ai-image-grid-description-{{ ai_gen_id }}">{{ block.settings.description_1 }}</p>
+            {% endif %}
+            {% if block.settings.button_text_1 != blank and block.settings.button_link_1 != blank %}
+              <a href="{{ block.settings.button_link_1 }}" class="ai-image-grid-button-{{ ai_gen_id }}">
+                {{ block.settings.button_text_1 }}
+              </a>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="ai-image-grid-item-{{ ai_gen_id }}">
+      <div class="ai-image-grid-item-wrapper-{{ ai_gen_id }}">
+        {% if block.settings.image_2 %}
+          <img
+            src="{{ block.settings.image_2 | image_url: width: 800 }}"
+            alt="{{ block.settings.image_2.alt | escape }}"
+            loading="lazy"
+            width="{{ block.settings.image_2.width }}"
+            height="{{ block.settings.image_2.height }}"
+            class="ai-image-grid-image-{{ ai_gen_id }}"
+          >
+        {% else %}
+          <div class="ai-image-grid-placeholder-{{ ai_gen_id }}">
+            {{ 'image' | placeholder_svg_tag }}
+          </div>
+        {% endif %}
+        {% if block.settings.title_2 != blank or block.settings.description_2 != blank or block.settings.button_text_2 != blank %}
+          <div class="ai-image-grid-content-{{ ai_gen_id }}">
+            {% if block.settings.title_2 != blank %}
+              <h3 class="ai-image-grid-title-{{ ai_gen_id }}">{{ block.settings.title_2 }}</h3>
+            {% endif %}
+            {% if block.settings.description_2 != blank %}
+              <p class="ai-image-grid-description-{{ ai_gen_id }}">{{ block.settings.description_2 }}</p>
+            {% endif %}
+            {% if block.settings.button_text_2 != blank and block.settings.button_link_2 != blank %}
+              <a href="{{ block.settings.button_link_2 }}" class="ai-image-grid-button-{{ ai_gen_id }}">
+                {{ block.settings.button_text_2 }}
+              </a>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="ai-image-grid-item-{{ ai_gen_id }}">
+      <div class="ai-image-grid-item-wrapper-{{ ai_gen_id }}">
+        {% if block.settings.image_3 %}
+          <img
+            src="{{ block.settings.image_3 | image_url: width: 800 }}"
+            alt="{{ block.settings.image_3.alt | escape }}"
+            loading="lazy"
+            width="{{ block.settings.image_3.width }}"
+            height="{{ block.settings.image_3.height }}"
+            class="ai-image-grid-image-{{ ai_gen_id }}"
+          >
+        {% else %}
+          <div class="ai-image-grid-placeholder-{{ ai_gen_id }}">
+            {{ 'image' | placeholder_svg_tag }}
+          </div>
+        {% endif %}
+        {% if block.settings.title_3 != blank or block.settings.description_3 != blank or block.settings.button_text_3 != blank %}
+          <div class="ai-image-grid-content-{{ ai_gen_id }}">
+            {% if block.settings.title_3 != blank %}
+              <h3 class="ai-image-grid-title-{{ ai_gen_id }}">{{ block.settings.title_3 }}</h3>
+            {% endif %}
+            {% if block.settings.description_3 != blank %}
+              <p class="ai-image-grid-description-{{ ai_gen_id }}">{{ block.settings.description_3 }}</p>
+            {% endif %}
+            {% if block.settings.button_text_3 != blank and block.settings.button_link_3 != blank %}
+              <a href="{{ block.settings.button_link_3 }}" class="ai-image-grid-button-{{ ai_gen_id }}">
+                {{ block.settings.button_text_3 }}
+              </a>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</image-grid-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class ImageGrid{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+      }
+    }
+    customElements.define('image-grid-{{ ai_gen_id }}', ImageGrid{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Image grid",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "desktop_width_percent",
+      "label": "Desktop width",
+      "min": 50,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "range",
+      "id": "grid_gap",
+      "label": "Gap between items",
+      "min": 0,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "label": "Border radius",
+      "min": 0,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Item 1"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_1",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "title_1",
+      "label": "Title",
+      "default": "Featured Collection"
+    },
+    {
+      "type": "textarea",
+      "id": "description_1",
+      "label": "Description",
+      "default": "Discover our latest products"
+    },
+    {
+      "type": "text",
+      "id": "button_text_1",
+      "label": "Button text",
+      "default": "Shop Now"
+    },
+    {
+      "type": "url",
+      "id": "button_link_1",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Item 2"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_2",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "title_2",
+      "label": "Title",
+      "default": "New Arrivals"
+    },
+    {
+      "type": "textarea",
+      "id": "description_2",
+      "label": "Description",
+      "default": "Check out what's new"
+    },
+    {
+      "type": "text",
+      "id": "button_text_2",
+      "label": "Button text",
+      "default": "Explore"
+    },
+    {
+      "type": "url",
+      "id": "button_link_2",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Item 3"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_3",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "title_3",
+      "label": "Title",
+      "default": "Best Sellers"
+    },
+    {
+      "type": "textarea",
+      "id": "description_3",
+      "label": "Description",
+      "default": "Shop our top picks"
+    },
+    {
+      "type": "text",
+      "id": "button_text_3",
+      "label": "Button text",
+      "default": "View All"
+    },
+    {
+      "type": "url",
+      "id": "button_link_3",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Content style"
+    },
+    {
+      "type": "range",
+      "id": "content_padding",
+      "label": "Content padding",
+      "min": 10,
+      "max": 50,
+      "step": 5,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "title_size",
+      "label": "Title size",
+      "min": 14,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "range",
+      "id": "description_size",
+      "label": "Description size",
+      "min": 12,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay",
+      "default": "rgba(0, 0, 0, 0.5)"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "placeholder_bg_color",
+      "label": "Placeholder background",
+      "default": "#f4f4f4"
+    },
+    {
+      "type": "header",
+      "content": "Button style"
+    },
+    {
+      "type": "color",
+      "id": "button_bg_color",
+      "label": "Background",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_bg_color",
+      "label": "Hover background",
+      "default": "#333333"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_text_color",
+      "label": "Hover text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "button_border_radius",
+      "label": "Border radius",
+      "min": 0,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "default": 28
+    }
+  ],
+  "presets": [
+    {
+      "name": "Image grid"
+    }
+  ],
+  "tag": null
+}
+{% endschema %}

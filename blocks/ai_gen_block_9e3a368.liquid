@@ -1,0 +1,559 @@
+{% doc %}
+  @prompt
+    Add a collection block. use the default theme template as the basis for this. use the same filtering. use the same theme based product cards (Product image, title, price). add 'Color' swatches underneath the price. style the swatches as circles.
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-collection-block-{{ ai_gen_id }} {
+    display: block;
+    width: {{ block.settings.desktop_width_percent }}%;
+    max-width: 100%;
+    padding: {{ block.settings.section_padding }}px 0;
+  }
+
+  .ai-collection-header-{{ ai_gen_id }} {
+    margin-bottom: 40px;
+    text-align: {{ block.settings.heading_alignment }};
+  }
+
+  .ai-collection-title-{{ ai_gen_id }} {
+    margin: 0 0 16px;
+    color: rgb(var(--color-foreground-heading));
+    font-family: var(--font-heading-family);
+    font-size: {{ block.settings.heading_size }}px;
+    text-transform: {{ block.settings.heading_text_transform }};
+  }
+
+  .ai-collection-description-{{ ai_gen_id }} {
+    margin: 0;
+    color: rgb(var(--color-foreground));
+    font-family: var(--font-body-family);
+  }
+
+  .ai-collection-grid-{{ ai_gen_id }} {
+    display: grid;
+    grid-template-columns: repeat({{ block.settings.columns_desktop }}, 1fr);
+    gap: {{ block.settings.grid_gap }}px;
+    margin-bottom: 40px;
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-collection-grid-{{ ai_gen_id }} {
+      grid-template-columns: repeat({{ block.settings.columns_mobile }}, 1fr);
+    }
+  }
+
+  .ai-product-card-{{ ai_gen_id }} {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ai-product-image-wrapper-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    padding-bottom: 100%;
+    overflow: hidden;
+    margin-bottom: 12px;
+    background-color: #f5f5f5;
+  }
+
+  .ai-product-image-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ai-product-placeholder-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ai-product-placeholder-{{ ai_gen_id }} svg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ai-product-info-{{ ai_gen_id }} {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .ai-product-title-{{ ai_gen_id }} {
+    margin: 0;
+    font-size: 14px;
+    font-family: var(--font-subheading-family);
+    font-weight: 600;
+    text-transform: {{ block.settings.product_title_text_transform }};
+    color: rgb(var(--color-foreground-heading));
+  }
+
+  .ai-product-title-{{ ai_gen_id }} a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .ai-product-title-{{ ai_gen_id }} a:hover {
+    opacity: 0.7;
+  }
+
+  .ai-product-price-{{ ai_gen_id }} {
+    font-size: 14px;
+    font-family: var(--font-body-family);
+    color: rgb(var(--color-foreground));
+  }
+
+  .ai-product-price-{{ ai_gen_id }} .price--on-sale {
+    color: #d82c0d;
+  }
+
+  .ai-product-price-{{ ai_gen_id }} .price-item--regular {
+    text-decoration: line-through;
+    opacity: 0.6;
+    margin-right: 8px;
+  }
+
+  .ai-color-swatches-{{ ai_gen_id }} {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .ai-color-swatch-{{ ai_gen_id }} {
+    width: {{ block.settings.swatch_size }}px;
+    height: {{ block.settings.swatch_size }}px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    position: relative;
+  }
+
+  .ai-color-swatch-{{ ai_gen_id }}:hover {
+    transform: scale(1.1);
+  }
+
+  .ai-color-swatch-{{ ai_gen_id }}.selected {
+    border: 2px solid rgb(var(--color-foreground));
+  }
+
+  .ai-pagination-{{ ai_gen_id }} {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 40px;
+  }
+
+  .ai-pagination-button-{{ ai_gen_id }} {
+    padding: 12px 24px;
+    background-color: rgb(var(--color-primary-button-background));
+    color: rgb(var(--color-primary-button-text));
+    border: none;
+    border-radius: {{ block.settings.button_border_radius }}px;
+    cursor: pointer;
+    font-family: var(--font-body-family);
+    text-transform: uppercase;
+    font-size: 14px;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .ai-pagination-button-{{ ai_gen_id }}:hover {
+    background-color: rgb(var(--color-primary-button-hover-background));
+  }
+
+  .ai-pagination-button-{{ ai_gen_id }}:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .ai-pagination-info-{{ ai_gen_id }} {
+    font-size: 14px;
+    color: rgb(var(--color-foreground));
+  }
+
+  .ai-empty-state-{{ ai_gen_id }} {
+    text-align: center;
+    padding: 60px 20px;
+    color: rgb(var(--color-foreground));
+  }
+
+  .ai-empty-state-{{ ai_gen_id }} svg {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 20px;
+    opacity: 0.3;
+  }
+{% endstyle %}
+
+<collection-block-{{ ai_gen_id }}
+  class="ai-collection-block-{{ ai_gen_id }}"
+  {{ block.shopify_attributes }}
+  data-products-per-page="{{ block.settings.products_per_page }}"
+>
+  {% if block.settings.collection != blank %}
+    {% assign collection = block.settings.collection %}
+    
+    {% if block.settings.show_collection_info %}
+      <div class="ai-collection-header-{{ ai_gen_id }}">
+        {% if block.settings.show_collection_title and collection.title != blank %}
+          <h2 class="ai-collection-title-{{ ai_gen_id }}">{{ collection.title }}</h2>
+        {% endif %}
+        {% if block.settings.show_collection_description and collection.description != blank %}
+          <div class="ai-collection-description-{{ ai_gen_id }}">{{ collection.description }}</div>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {% paginate collection.products by block.settings.products_per_page %}
+      <div class="ai-collection-grid-{{ ai_gen_id }}">
+        {% for product in collection.products %}
+          <div class="ai-product-card-{{ ai_gen_id }}">
+            <div class="ai-product-image-wrapper-{{ ai_gen_id }}">
+              <a href="{{ product.url }}">
+                {% if product.featured_image %}
+                  <img
+                    src="{{ product.featured_image | image_url: width: 600 }}"
+                    alt="{{ product.featured_image.alt | escape }}"
+                    class="ai-product-image-{{ ai_gen_id }}"
+                    loading="lazy"
+                    width="600"
+                    height="600"
+                  >
+                {% else %}
+                  <div class="ai-product-placeholder-{{ ai_gen_id }}">
+                    {{ 'product-1' | placeholder_svg_tag }}
+                  </div>
+                {% endif %}
+              </a>
+            </div>
+
+            <div class="ai-product-info-{{ ai_gen_id }}">
+              <h3 class="ai-product-title-{{ ai_gen_id }}">
+                <a href="{{ product.url }}">{{ product.title }}</a>
+              </h3>
+
+              <div class="ai-product-price-{{ ai_gen_id }}">
+                {% if product.compare_at_price > product.price %}
+                  <span class="price--on-sale">
+                    <span class="price-item--regular">{{ product.compare_at_price | money }}</span>
+                    <span class="price-item--sale">{{ product.price | money }}</span>
+                  </span>
+                {% else %}
+                  <span class="price-item">{{ product.price | money }}</span>
+                {% endif %}
+              </div>
+
+              {% if block.settings.show_color_swatches %}
+                {% assign color_option = null %}
+                {% for option in product.options_with_values %}
+                  {% assign option_name_downcase = option.name | downcase %}
+                  {% if option_name_downcase == 'color' or option_name_downcase == 'colour' %}
+                    {% assign color_option = option %}
+                    {% break %}
+                  {% endif %}
+                {% endfor %}
+
+                {% if color_option %}
+                  <div class="ai-color-swatches-{{ ai_gen_id }}">
+                    {% for value in color_option.values %}
+                      {% assign color_value = value | downcase | replace: ' ', '-' %}
+                      <span
+                        class="ai-color-swatch-{{ ai_gen_id }}"
+                        style="background-color: {{ value | downcase | replace: ' ', '' }};"
+                        title="{{ value }}"
+                        data-color="{{ value }}"
+                      ></span>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      {% if paginate.pages > 1 %}
+        <div class="ai-pagination-{{ ai_gen_id }}">
+          {% if paginate.previous %}
+            <a href="{{ paginate.previous.url }}" class="ai-pagination-button-{{ ai_gen_id }}">Previous</a>
+          {% else %}
+            <button class="ai-pagination-button-{{ ai_gen_id }}" disabled>Previous</button>
+          {% endif %}
+
+          <span class="ai-pagination-info-{{ ai_gen_id }}">
+            Page {{ paginate.current_page }} of {{ paginate.pages }}
+          </span>
+
+          {% if paginate.next %}
+            <a href="{{ paginate.next.url }}" class="ai-pagination-button-{{ ai_gen_id }}">Next</a>
+          {% else %}
+            <button class="ai-pagination-button-{{ ai_gen_id }}" disabled>Next</button>
+          {% endif %}
+        </div>
+      {% endif %}
+    {% endpaginate %}
+  {% else %}
+    <div class="ai-empty-state-{{ ai_gen_id }}">
+      {{ 'collection-1' | placeholder_svg_tag }}
+      <p>Select a collection to display products</p>
+    </div>
+  {% endif %}
+</collection-block-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class CollectionBlock{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+      }
+
+      connectedCallback() {
+        this.initColorSwatches();
+      }
+
+      initColorSwatches() {
+        const swatches = this.querySelectorAll('.ai-color-swatch-{{ ai_gen_id }}');
+        
+        swatches.forEach((swatch) => {
+          swatch.addEventListener('click', function() {
+            const productCard = this.closest('.ai-product-card-{{ ai_gen_id }}');
+            const productSwatches = productCard.querySelectorAll('.ai-color-swatch-{{ ai_gen_id }}');
+            
+            productSwatches.forEach((s) => s.classList.remove('selected'));
+            this.classList.add('selected');
+          });
+        });
+      }
+    }
+
+    customElements.define('collection-block-{{ ai_gen_id }}', CollectionBlock{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Collection grid",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Collection"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "Products per page",
+      "min": 4,
+      "max": 50,
+      "step": 2,
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "desktop_width_percent",
+      "label": "Desktop width",
+      "min": 50,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "header",
+      "content": "Collection info"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_info",
+      "label": "Show collection info",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_title",
+      "label": "Show title",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_description",
+      "label": "Show description",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "heading_alignment",
+      "label": "Heading alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Heading size",
+      "min": 16,
+      "max": 72,
+      "step": 4,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "select",
+      "id": "heading_text_transform",
+      "label": "Heading text case",
+      "options": [
+        {
+          "value": "none",
+          "label": "Default"
+        },
+        {
+          "value": "uppercase",
+          "label": "Uppercase"
+        }
+      ],
+      "default": "uppercase"
+    },
+    {
+      "type": "header",
+      "content": "Grid layout"
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "label": "Columns on desktop",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "Columns on mobile",
+      "options": [
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "range",
+      "id": "grid_gap",
+      "label": "Grid gap",
+      "min": 8,
+      "max": 40,
+      "step": 4,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "header",
+      "content": "Product cards"
+    },
+    {
+      "type": "select",
+      "id": "product_title_text_transform",
+      "label": "Product title text case",
+      "options": [
+        {
+          "value": "none",
+          "label": "Default"
+        },
+        {
+          "value": "uppercase",
+          "label": "Uppercase"
+        }
+      ],
+      "default": "uppercase"
+    },
+    {
+      "type": "header",
+      "content": "Color swatches"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_color_swatches",
+      "label": "Show color swatches",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "swatch_size",
+      "label": "Swatch size",
+      "min": 16,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "section_padding",
+      "label": "Section padding",
+      "min": 0,
+      "max": 100,
+      "step": 10,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "button_border_radius",
+      "label": "Button border radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 30
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collection grid"
+    }
+  ]
+}
+{% endschema %}
