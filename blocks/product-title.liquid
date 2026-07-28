@@ -5,32 +5,11 @@
   {% assign product_title = '<p role="heading" aria-level="3">' | append: text | append: '</p>' %}
   {% render 'text', fallback_text: product_title, block: block %}
 {% else %}
-  {% liquid
-    assign display_title = closest.product.title
-    if card_color_value != blank
-      assign display_title = closest.product.title | append: ' — ' | append: card_color_value
-    endif
-    assign product_title = '<p role="heading" aria-level="3">' | append: display_title | append: '</p>'
-    assign title_variant_url = closest.product.selected_or_first_available_variant.url
-    assign card_variant = nil
-    if card_variant_id != blank
-      assign card_variant_id_string = card_variant_id | append: ''
-      for variant in closest.product.variants
-        assign variant_id_string = variant.id | append: ''
-        if variant_id_string == card_variant_id_string
-          assign card_variant = variant
-          break
-        endif
-      endfor
-    endif
-    if card_variant != blank
-      assign title_variant_url = card_variant.url
-    endif
-  %}
+  {% assign product_title = '<p role="heading" aria-level="3">' | append: closest.product.title | append: '</p>' %}
   <a
     class="contents user-select-text"
     ref="productTitleLink"
-    href="{{ title_variant_url }}"
+    href="{{ closest.product.selected_or_first_available_variant.url }}"
   >
     {% render 'text', fallback_text: product_title, block: block %}
   </a>

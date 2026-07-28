@@ -82,6 +82,9 @@
   data-product-id="{{ product.id }}"
   {% if card_variant != blank %}
     data-variant-id="{{ card_variant.id }}"
+    {% if card_color_value != blank %}
+      data-card-color-value="{{ card_color_value | escape }}"
+    {% endif %}
     {% if card_initial_media_id != blank %}
       data-initial-media-id="{{ card_initial_media_id }}"
     {% endif %}
@@ -136,6 +139,57 @@
   >
     {{ children }}
   </div>
+  {% if card_variant != blank %}
+    <script>
+      (() => {
+        const card = document.currentScript && document.currentScript.closest('product-card');
+        if (!card) return;
+
+        const variantId = card.dataset.variantId;
+        const color = card.dataset.cardColorValue;
+        const mediaId = card.dataset.initialMediaId;
+
+        if (variantId) {
+          card.querySelectorAll('input[type="radio"][name$="-swatch"]').forEach((input) => {
+            if (!input.name.includes(`-${variantId}-`)) {
+              input.name = input.name.replace(/-swatch$/, `-${variantId}-swatch`);
+            }
+            const label = input.getAttribute('aria-label') || '';
+            input.checked = Boolean(color && label === color);
+          });
+        }
+
+        if (color) {
+          const titleLink = card.querySelector('[ref="productTitleLink"]');
+          if (titleLink) {
+            titleLink.href = card.querySelector('[ref="productCardLink"]')?.href || titleLink.href;
+            const titleText = titleLink.querySelector('p, .text-block, span') || titleLink;
+            if (titleText && !titleText.textContent.includes(`— ${color}`)) {
+              titleText.textContent = `${titleText.textContent.trim()} — ${color}`;
+            }
+          }
+        }
+
+        if (mediaId) {
+          card.querySelectorAll('slideshow-slide').forEach((slide) => {
+            const isMatch = slide.getAttribute('slide-id') === mediaId;
+            if (isMatch) {
+              slide.removeAttribute('hidden');
+              slide.setAttribute('reveal', '');
+              slide.setAttribute('aria-hidden', 'false');
+            } else if (slide.hasAttribute('variant-image') || slide.hasAttribute('reveal')) {
+              slide.setAttribute('hidden', '');
+              slide.removeAttribute('reveal');
+              slide.setAttribute('aria-hidden', 'true');
+            } else if (slide.getAttribute('aria-hidden') === 'false') {
+              slide.setAttribute('aria-hidden', 'true');
+              slide.setAttribute('hidden', '');
+            }
+          });
+        }
+      })();
+    </script>
+  {% endif %}
 </product-card>
 
 {% stylesheet %}

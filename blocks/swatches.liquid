@@ -12,18 +12,6 @@
       assign product_has_swatches = true
     endif
   endfor
-
-  assign card_variant = nil
-  if card_variant_id != blank
-    assign card_variant_id_string = card_variant_id | append: ''
-    for variant in closest.product.variants
-      assign variant_id_string = variant.id | append: ''
-      if variant_id_string == card_variant_id_string
-        assign card_variant = variant
-        break
-      endif
-    endfor
-  endif
 -%}
 
 {% stylesheet %}
@@ -53,11 +41,7 @@
     "
     {{ block.shopify_attributes }}
   >
-    {% render 'variant-swatches',
-      product_resource: closest.product,
-      card_color_value: card_color_value,
-      card_variant: card_variant
-    %}
+    {% render 'variant-swatches', product_resource: closest.product %}
   </product-swatches>
 {% endif %}
 

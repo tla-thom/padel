@@ -16,11 +16,7 @@
 -%}
 
 {% capture children %}
-  {% content_for 'blocks',
-    closest.product: product,
-    card_variant_id: card_variant_id,
-    card_color_value: card_color_value
-  %}
+  {% content_for 'blocks', closest.product: product %}
 {% endcapture %}
 
 {% render 'product-card',

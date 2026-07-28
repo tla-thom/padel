@@ -4,20 +4,6 @@
   assign block_settings = block.settings
   assign product_resource = closest.product
   assign selected_variant = product_resource.selected_or_first_available_variant
-  assign card_variant = nil
-  if card_variant_id != blank
-    assign card_variant_id_string = card_variant_id | append: ''
-    for variant in product_resource.variants
-      assign variant_id_string = variant.id | append: ''
-      if variant_id_string == card_variant_id_string
-        assign card_variant = variant
-        break
-      endif
-    endfor
-  endif
-  if card_variant != blank
-    assign selected_variant = card_variant
-  endif
 -%}
 
 {% liquid
@@ -64,8 +50,7 @@
   {% render 'price',
     show_unit_price: true,
     product_resource: product_resource,
-    show_sale_price_first: block_settings.show_sale_price_first,
-    card_variant: card_variant
+    show_sale_price_first: block_settings.show_sale_price_first
   %}
 
   {% if block_settings.show_tax_info %}

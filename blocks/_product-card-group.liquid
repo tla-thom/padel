@@ -1,11 +1,7 @@
 
 
 {% capture children %}
-  {% content_for 'blocks',
-    closest.product: closest.product,
-    card_variant_id: card_variant_id,
-    card_color_value: card_color_value
-  %}
+  {% content_for 'blocks', closest.product: closest.product %}
 {% endcapture %}
 
 {% render 'group', children: children, settings: block.settings, shopify_attributes: block.shopify_attributes %}

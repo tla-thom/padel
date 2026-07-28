@@ -5,8 +5,6 @@
 
   @param {object} product_resource - The product object, which contains variants and options.
   @param {boolean} [has_option_selected] - Whether to render the swatches in a pre-selected state.
-  @param {string} [card_color_value] - Pre-select the swatch matching this color on split collection cards.
-  @param {object} [card_variant] - The variant this collection card represents.
 
   @example
   {% render 'variant-swatches', product_resource: product %}
@@ -98,23 +96,11 @@
   # Allow pre-selection of a swatch if there is a selected variant
   # product.selected_variant is automatically set in filtered collection, filtered search and some unfiltered search contexts based on result relevance.
   # Applying a filter updates the displayed image, so a swatch can help communicate the change.
+  # Color-split collection cards apply checked state via product-card JS (data-card-color-value).
   assign allow_preselection = false
 
-  if product_resource.selected_variant or has_option_selected or card_color_value != blank or card_variant != blank
+  if product_resource.selected_variant or has_option_selected
     assign allow_preselection = true
-  endif
-
-  assign swatch_variant_json = product_resource.selected_or_first_available_variant
-  if card_variant != blank
-    assign swatch_variant_json = card_variant
-  endif
-
-  # Unique radio name per card so color-split cards don't share one checked state
-  assign swatch_radio_suffix = 'default'
-  if card_variant != blank
-    assign swatch_radio_suffix = card_variant.id
-  elsif card_color_value != blank
-    assign swatch_radio_suffix = card_color_value | handleize
   endif
 %}
 
@@ -201,7 +187,7 @@
               >
                 <input
                   type="radio"
-                  name="{{ product_option.name | escape }}-{{ product_resource.id }}-{{ swatch_radio_suffix }}-swatch"
+                  name="{{ product_option.name | escape }}-{{ product_resource.id }}-swatch"
                   value="{{ product_option_value | escape }}"
                   aria-label="{{ product_option_value.name }}"
                   data-input-id="{{ product_option.position }}-{{ forloop.index0 }}"
@@ -209,24 +195,8 @@
                   data-option-value-id="{{ product_option_value.id }}"
                   data-option-available="{{ product_option_value.available }}"
                   data-connected-product-url="{{ product_option_value.product_url }}"
-                  {% if allow_preselection %}
-                    {% liquid
-                      assign should_check_swatch = false
-
-                      if card_color_value != blank and product_option_value.name == card_color_value
-                        assign should_check_swatch = true
-                      elsif card_variant != blank and is_color_option
-                        assign card_variant_color_value = card_variant[swatch_option_key]
-                        if product_option_value.name == card_variant_color_value
-                          assign should_check_swatch = true
-                        endif
-                      elsif card_color_value == blank and card_variant == blank and product_option_value.selected
-                        assign should_check_swatch = true
-                      endif
-                    %}
-                    {% if should_check_swatch %}
-                      checked
-                    {% endif %}
+                  {% if allow_preselection and product_option_value.selected %}
+                    checked
                   {% endif %}
                   data-variant-id="{{ first_available_variant.id | default: product_option_value.variant.id }}"
                   data-first-available-or-first-variant-id="{{ first_available_variant.id | default: product_option_value.variant.id }}"
@@ -254,7 +224,7 @@
       </fieldset>
     {%- endfor -%}
     <script type="application/json">
-      {{ swatch_variant_json | json }}
+      {{ product_resource.selected_or_first_available_variant | json }}
     </script>
   </form>
 </swatches-variant-picker-component>

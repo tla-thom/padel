@@ -171,8 +171,46 @@ export class ProductCard extends ProductCardLink {
       if (this.refs.slideshow?.isNested) {
         this.#preloadNextPreviewImage();
       }
-      this.#initializeCollectionCardVariantImage();
+      this.#initializeColorSplitCard();
     });
+  }
+
+  /**
+   * Applies color-split collection card context: unique swatch radios, highlight, title, image.
+   */
+  #initializeColorSplitCard() {
+    const variantId = this.dataset.variantId;
+    const color = this.dataset.cardColorValue;
+    const initialMediaId = this.dataset.initialMediaId;
+
+    if (!variantId && !color && !initialMediaId) return;
+
+    if (variantId) {
+      this.querySelectorAll('input[type="radio"][name*="-swatch"]').forEach((input) => {
+        if (!(input instanceof HTMLInputElement)) return;
+        if (!input.name.includes(`-${variantId}-`)) {
+          input.name = input.name.replace(/-swatch$/, `-${variantId}-swatch`);
+        }
+        const label = input.getAttribute('aria-label') || '';
+        input.checked = Boolean(color && label === color);
+      });
+    }
+
+    if (color) {
+      const titleLink = this.querySelector('[ref="productTitleLink"]');
+      if (titleLink instanceof HTMLAnchorElement) {
+        const cardLink = this.refs.productCardLink;
+        if (cardLink instanceof HTMLAnchorElement) {
+          titleLink.href = cardLink.href;
+        }
+        const titleText = titleLink.querySelector('p, .text-block, span') || titleLink;
+        if (titleText && !titleText.textContent?.includes(`— ${color}`)) {
+          titleText.textContent = `${titleText.textContent?.trim() || ''} — ${color}`;
+        }
+      }
+    }
+
+    this.#initializeCollectionCardVariantImage();
   }
 
   /**
