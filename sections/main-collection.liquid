@@ -72,16 +72,33 @@
                 assign collection_card_variant = nil
                 assign swatch_option_key = 'option' | append: color_option.position
 
+                if color_value.variant != blank
+                  assign collection_card_variant = color_value.variant
+                endif
+
                 for variant in product.variants
                   if variant[swatch_option_key] == color_value.name
-                    if variant.available
+                    if variant.featured_media != blank and variant.available
                       assign collection_card_variant = variant
                       break
+                    endif
+
+                    if variant.available and collection_card_variant == nil
+                      assign collection_card_variant = variant
                     elsif collection_card_variant == nil
                       assign collection_card_variant = variant
                     endif
                   endif
                 endfor
+
+                if collection_card_variant != blank and collection_card_variant.featured_media == blank
+                  for variant in product.variants
+                    if variant[swatch_option_key] == color_value.name and variant.featured_media != blank
+                      assign collection_card_variant = variant
+                      break
+                    endif
+                  endfor
+                endif
               %}
 
               {% if collection_card_variant != blank %}
@@ -98,7 +115,13 @@
                   ref="cards[]"
                 >
                   {% # theme-check-disable %}
-                  {% content_for 'block', type: '_product-card', id: 'product-card', closest.product: product %}
+                  {% content_for 'block',
+                    type: '_product-card',
+                    id: 'product-card',
+                    closest.product: product,
+                    card_variant: collection_card_variant,
+                    card_color_value: collection_card_color_value
+                  %}
                   {% # theme-check-enable %}
                 </li>
                 {% assign card_index = card_index | plus: 1 %}
@@ -117,7 +140,13 @@
               ref="cards[]"
             >
               {% # theme-check-disable %}
-              {% content_for 'block', type: '_product-card', id: 'product-card', closest.product: product %}
+              {% content_for 'block',
+                type: '_product-card',
+                id: 'product-card',
+                closest.product: product,
+                card_variant: nil,
+                card_color_value: nil
+              %}
               {% # theme-check-enable %}
             </li>
             {% assign card_index = card_index | plus: 1 %}

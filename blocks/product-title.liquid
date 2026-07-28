@@ -7,13 +7,13 @@
 {% else %}
   {% liquid
     assign display_title = closest.product.title
-    if collection_card_color_value != blank
-      assign display_title = closest.product.title | append: ' — ' | append: collection_card_color_value
+    if card_color_value != blank
+      assign display_title = closest.product.title | append: ' — ' | append: card_color_value
     endif
     assign product_title = '<p role="heading" aria-level="3">' | append: display_title | append: '</p>'
     assign title_variant_url = closest.product.selected_or_first_available_variant.url
-    if collection_card_variant != blank
-      assign title_variant_url = collection_card_variant.url
+    if card_variant != blank
+      assign title_variant_url = card_variant.url
     endif
   %}
   <a

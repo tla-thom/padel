@@ -170,9 +170,9 @@
 
                 if child_product
                   assign featured_media = child_product.featured_media
-                elsif product_option_value.variant == blank
+                else
                   for variant in product_resource.variants
-                    if variant.available and variant[swatch_option_key] == product_option_value.name and variant.featured_media
+                    if variant[swatch_option_key] == product_option_value.name and variant.featured_media
                       assign featured_media = variant.featured_media
                       assign first_available_variant = variant
                       break
@@ -202,9 +202,21 @@
                   data-option-available="{{ product_option_value.available }}"
                   data-connected-product-url="{{ product_option_value.product_url }}"
                   {% if allow_preselection %}
-                    {% if card_color_value != blank and product_option_value.name == card_color_value %}
-                      checked
-                    {% elsif card_color_value == blank and product_option_value.selected %}
+                    {% liquid
+                      assign should_check_swatch = false
+
+                      if card_variant != blank and is_color_option
+                        assign card_variant_color_value = card_variant[swatch_option_key]
+                        if product_option_value.name == card_variant_color_value
+                          assign should_check_swatch = true
+                        endif
+                      elsif card_color_value != blank and product_option_value.name == card_color_value
+                        assign should_check_swatch = true
+                      elsif card_color_value == blank and product_option_value.selected
+                        assign should_check_swatch = true
+                      endif
+                    %}
+                    {% if should_check_swatch %}
                       checked
                     {% endif %}
                   {% endif %}

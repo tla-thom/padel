@@ -7,6 +7,8 @@
   @param {object} children - The children of the product card
   @param {object} [block] - The block object
   @param {number} [product_card_gap] - The gap between the product card children (overrides block settings)
+  @param {object} [card_variant] - Variant context for color-split collection cards
+  @param {string} [card_color_value] - Color option value for color-split collection cards
 {%- enddoc -%}
 
 {% assign block_settings = block.settings %}
@@ -32,15 +34,15 @@
   endif
 
   assign product_card_id = 'product-card-link-' | append: block.id | append: '-' | append: product.id
-  if collection_card_variant != blank
-    assign product_card_id = product_card_id | append: '-' | append: collection_card_variant.id
+  if card_variant != blank
+    assign product_card_id = product_card_id | append: '-' | append: card_variant.id
   endif
   assign product_card_gap_value = product_card_gap | default: block_settings.product_card_gap
 
   # Logic to determine which variant URL to use (matching swatch selection logic)
   assign variant_to_link = product.selected_or_first_available_variant
-  if collection_card_variant != blank
-    assign variant_to_link = collection_card_variant
+  if card_variant != blank
+    assign variant_to_link = card_variant
   endif
 
   if settings.transition_to_main_product
@@ -54,6 +56,20 @@
     endif
   endif
 
+  assign card_initial_media_id = nil
+  if card_variant != blank
+    if card_variant.featured_media != blank
+      assign card_initial_media_id = card_variant.featured_media.id
+    elsif card_variant.featured_image != blank
+      for media in product.media
+        if media.preview_image.src == card_variant.featured_image.src
+          assign card_initial_media_id = media.id
+          break
+        endif
+      endfor
+    endif
+  endif
+
   assign onboarding = false
   if product.id == empty or product == blank
     assign onboarding = true
@@ -64,13 +80,13 @@
   class="product-card size-style"
   style="{% render 'size-style', settings: block_settings %}"
   data-product-id="{{ product.id }}"
-  {% if collection_card_variant != blank %}
-    data-variant-id="{{ collection_card_variant.id }}"
-    {% if collection_card_variant.featured_media != blank %}
-      data-initial-media-id="{{ collection_card_variant.featured_media.id }}"
+  {% if card_variant != blank %}
+    data-variant-id="{{ card_variant.id }}"
+    {% if card_initial_media_id != blank %}
+      data-initial-media-id="{{ card_initial_media_id }}"
     {% endif %}
   {% endif %}
-  id="product-card-{{ block.id }}{% if collection_card_variant != blank %}-{{ collection_card_variant.id }}{% endif %}"
+  id="product-card-{{ block.id }}{% if card_variant != blank %}-{{ card_variant.id }}{% endif %}"
   {% if settings.transition_to_main_product %}
     data-product-transition="true"
     data-featured-media-url="{{ featured_media_url }}"
@@ -90,7 +106,7 @@
     ref="productCardLink"
   >
     <span class="visually-hidden">
-      {{ product.title }}{% if collection_card_color_value != blank %} — {{ collection_card_color_value }}{% endif %}
+      {{ product.title }}{% if card_color_value != blank %} — {{ card_color_value }}{% endif %}
     </span>
   </a>
   <div

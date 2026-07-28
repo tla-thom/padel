@@ -171,6 +171,29 @@ export class ProductCard extends ProductCardLink {
       if (this.refs.slideshow?.isNested) {
         this.#preloadNextPreviewImage();
       }
+      this.#initializeCollectionCardVariantImage();
+    });
+  }
+
+  /**
+   * Ensures color-split collection cards show the correct variant image on load.
+   */
+  #initializeCollectionCardVariantImage() {
+    const initialMediaId = this.dataset.initialMediaId;
+    const { slideshow } = this.refs;
+
+    if (!initialMediaId || !slideshow) return;
+
+    const selectInitial = () => {
+      if (!slideshow.refs?.slides?.length) return false;
+      slideshow.select({ id: initialMediaId }, undefined, { animate: false });
+      return true;
+    };
+
+    requestAnimationFrame(() => {
+      if (!selectInitial()) {
+        requestAnimationFrame(selectInitial);
+      }
     });
   }
 

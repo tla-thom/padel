@@ -6,6 +6,8 @@
   @param [children] - Additional content rendered below the card gallery
   @param [section] - The section object the snippet is rendered in
   @param [block] - The block object the snippet is rendered in
+  @param [card_variant] - Variant context for color-split collection cards
+  @param [card_color_value] - Color option value for color-split collection cards
 {%- enddoc -%}
 
 {% liquid
@@ -91,8 +93,21 @@
       # Sort media so the card variant's featured media comes first on color-split collection cards.
       assign card_gallery_featured_media = product.featured_media
 
-      if collection_card_variant != blank and collection_card_variant.featured_media != blank
-        assign card_gallery_featured_media = collection_card_variant.featured_media
+      if card_variant != blank
+        if card_variant.featured_media != blank
+          assign card_gallery_featured_media = card_variant.featured_media
+        elsif card_variant.featured_image != blank
+          for media in product.media
+            if media.preview_image.src == card_variant.featured_image.src
+              assign card_gallery_featured_media = media
+              break
+            endif
+          endfor
+        endif
+      endif
+
+      if card_gallery_featured_media == blank
+        assign card_gallery_featured_media = product.featured_media
       endif
 
       assign other_media = product.media | reject: 'id', card_gallery_featured_media.id
@@ -163,8 +178,8 @@
     <a
       class="contents"
       ref="cardGalleryLink"
-      href="{% if collection_card_variant != blank %}{{ collection_card_variant.url }}{% else %}{{ product.selected_or_first_available_variant.url }}{% endif %}"
-      aria-label="{{- product.title -}}{% if collection_card_color_value != blank %} — {{ collection_card_color_value }}{% endif %}"
+      href="{% if card_variant != blank %}{{ card_variant.url }}{% else %}{{ product.selected_or_first_available_variant.url }}{% endif %}"
+      aria-label="{{- product.title -}}{% if card_color_value != blank %} — {{ card_color_value }}{% endif %}"
     >
       {% render 'slideshow',
         ref: 'slideshow',

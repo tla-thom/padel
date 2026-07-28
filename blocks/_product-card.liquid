@@ -5,10 +5,20 @@
 -%}
 
 {% capture children %}
-  {% content_for 'blocks', closest.product: product %}
+  {% content_for 'blocks',
+    closest.product: product,
+    card_variant: card_variant,
+    card_color_value: card_color_value
+  %}
 {% endcapture %}
 
-{% render 'product-card', children: children, product: product %}
+{% render 'product-card',
+  children: children,
+  product: product,
+  block: block,
+  card_variant: card_variant,
+  card_color_value: card_color_value
+%}
 {% render 'buy-buttons-styles' %}
 {% render 'gift-card-recipient-form-styles' %}
 {% render 'quick-add-styles' %}
