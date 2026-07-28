@@ -141,6 +141,8 @@
         {% capture children %}
           {%- for product_option_value in product_option.values -%}
             {% liquid
+              assign first_available_variant = nil
+
               comment
                 Identify the most relevant variant image to show in a card-gallery, and optionally as the swatch content.
                 The `product_option_value.variant` can be nil when no valid variant is associated with the combination of the current option-value and the other option values.
@@ -200,7 +202,6 @@
                 >
                 {% render 'swatch',
                   swatch: product_option_value.swatch,
-                  variant_image: featured_media,
                   label: product_option_value.name,
                 %}
                 {% render 'strikethrough-variant', product_option: product_option_value %}

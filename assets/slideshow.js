@@ -136,7 +136,8 @@ export class Slideshow extends Component {
       if (!this.isConnected) return;
     }
 
-    const slideCount = this.slides?.length || 0;
+    // Use all slides (including hidden variant images) so card-gallery swatch hover can preview variants.
+    const slideCount = this.refs.slides?.length || 0;
     slideCount <= 1 ? this.#setupSlideshowWithoutControls() : this.#setupSlideshow();
   }
 
