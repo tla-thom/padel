@@ -659,6 +659,9 @@ if (!customElements.get('product-card')) {
  * @extends {VariantPicker<SwatchesRefs>}
  */
 class SwatchesVariantPickerComponent extends VariantPicker {
+  /** @type {boolean} */
+  #swatchWasCheckedOnPointerDown = false;
+
   connectedCallback() {
     super.connectedCallback();
 
@@ -667,6 +670,85 @@ class SwatchesVariantPickerComponent extends VariantPicker {
 
     // Listen for variant updates to apply pending URL changes
     this.addEventListener(ThemeEvents.variantUpdate, this.#handleCardVariantUrlUpdate.bind(this));
+
+    // Collection cards: re-selected (already checked) swatches don't fire change — handle click
+    if (this.parentProductCard instanceof ProductCard) {
+      this.addEventListener('pointerdown', this.#handleSwatchPointerDown);
+      this.addEventListener('click', this.#handleSwatchClick);
+    }
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.removeEventListener('pointerdown', this.#handleSwatchPointerDown);
+    this.removeEventListener('click', this.#handleSwatchClick);
+  }
+
+  /**
+   * @param {Event} event
+   * @returns {HTMLInputElement | null}
+   */
+  #getSwatchInput(event) {
+    if (!(event.target instanceof Element)) return null;
+
+    const label = event.target.closest('label');
+    const input =
+      label?.querySelector('input[type="radio"][name*="-swatch"]') ||
+      (event.target instanceof HTMLInputElement && event.target.name?.includes('-swatch') ? event.target : null);
+
+    return input instanceof HTMLInputElement ? input : null;
+  }
+
+  /**
+   * Remember if the swatch was already selected before the click changes it.
+   * @param {Event} event
+   */
+  #handleSwatchPointerDown = (event) => {
+    const input = this.#getSwatchInput(event);
+    this.#swatchWasCheckedOnPointerDown = Boolean(input?.checked);
+  };
+
+  /**
+   * Navigate when the user clicks an already-selected swatch (no change event).
+   * @param {Event} event
+   */
+  #handleSwatchClick = (event) => {
+    if (!this.#swatchWasCheckedOnPointerDown) return;
+
+    const input = this.#getSwatchInput(event);
+    if (!input) return;
+
+    this.#navigateToProductVariant(input, event);
+  };
+
+  /**
+   * Navigates from a collection card swatch to the product page for that variant.
+   * @param {HTMLElement} clickedSwatch
+   * @param {Event} event
+   */
+  #navigateToProductVariant(clickedSwatch, event) {
+    if (!(this.parentProductCard instanceof ProductCard)) return;
+
+    const variantId =
+      clickedSwatch.dataset.firstAvailableOrFirstVariantId || clickedSwatch.dataset.variantId;
+    const productUrl = this.dataset.productUrl?.split('?')[0];
+
+    if (!productUrl || !variantId) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const url = new URL(productUrl, window.location.origin);
+    url.searchParams.set('variant', variantId);
+
+    const shouldOpenInNewTab =
+      event instanceof MouseEvent && (event.metaKey || event.ctrlKey || event.shiftKey || event.button === 1);
+
+    if (shouldOpenInNewTab) {
+      window.open(url.href, '_blank');
+    } else {
+      window.location.href = url.href;
+    }
   }
 
   /**
@@ -698,24 +780,7 @@ class SwatchesVariantPickerComponent extends VariantPicker {
     // Collection card: navigate to product page with the selected variant
     if (isSwatchInput && this.parentProductCard instanceof ProductCard) {
       event.stopPropagation();
-
-      const variantId = firstAvailableVariantId || clickedSwatch.dataset.variantId;
-      const productUrl = this.dataset.productUrl?.split('?')[0];
-
-      if (productUrl && variantId) {
-        const url = new URL(productUrl, window.location.origin);
-        url.searchParams.set('variant', variantId);
-
-        const shouldOpenInNewTab =
-          event instanceof MouseEvent && (event.metaKey || event.ctrlKey || event.shiftKey || event.button === 1);
-
-        if (shouldOpenInNewTab) {
-          window.open(url.href, '_blank');
-        } else {
-          window.location.href = url.href;
-        }
-      }
-
+      this.#navigateToProductVariant(clickedSwatch, event);
       return;
     }
 
