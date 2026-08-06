@@ -82,6 +82,7 @@
   data-product-id="{{ product.id }}"
   {% if card_variant != blank %}
     data-variant-id="{{ card_variant.id }}"
+    data-card-url="{{ variant_to_link.url }}"
     {% if card_color_value != blank %}
       data-card-color-value="{{ card_color_value | escape }}"
     {% endif %}

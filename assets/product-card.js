@@ -165,6 +165,7 @@ export class ProductCard extends ProductCardLink {
     mediaQueryLarge.addEventListener('change', this.#handleQuickAdd);
 
     this.addEventListener('click', this.navigateToProduct);
+    window.addEventListener('pageshow', this.#onPageShow);
 
     // Preload the next image on the slideshow to avoid white flashes on previewImage
     setTimeout(() => {
@@ -176,14 +177,48 @@ export class ProductCard extends ProductCardLink {
   }
 
   /**
+   * Re-applies color-split card state after browser back (including bfcache restore).
+   * @param {PageTransitionEvent} [event]
+   */
+  #onPageShow = (event) => {
+    if (!this.dataset.variantId && !this.dataset.cardColorValue && !this.dataset.initialMediaId) {
+      return;
+    }
+
+    // Always re-sync after history navigation; bfcache keeps hovered/selected DOM state.
+    this.resetVariant?.cancel?.();
+    this.#initializeColorSplitCard();
+
+    // Slideshow scroller may need a second tick after bfcache restore
+    if (event?.persisted) {
+      requestAnimationFrame(() => this.#initializeCollectionCardVariantImage());
+    }
+  };
+
+  /**
    * Applies color-split collection card context: unique swatch radios, highlight, title, image.
    */
   #initializeColorSplitCard() {
     const variantId = this.dataset.variantId;
     const color = this.dataset.cardColorValue;
     const initialMediaId = this.dataset.initialMediaId;
+    const cardUrl = this.dataset.cardUrl;
 
     if (!variantId && !color && !initialMediaId) return;
+
+    // Restore links to this card's canonical color variant
+    if (cardUrl) {
+      const productLink = this.refs.productCardLink;
+      if (productLink instanceof HTMLAnchorElement) {
+        productLink.href = cardUrl;
+      }
+
+      this.querySelectorAll('a[ref="productTitleLink"], a[ref="cardGalleryLink"]').forEach((anchor) => {
+        if (anchor instanceof HTMLAnchorElement) {
+          anchor.href = cardUrl;
+        }
+      });
+    }
 
     if (variantId) {
       this.querySelectorAll('input[type="radio"][name*="-swatch"]').forEach((input) => {
@@ -204,12 +239,33 @@ export class ProductCard extends ProductCardLink {
           titleLink.href = cardLink.href;
         }
         const titleText = titleLink.querySelector('p, .text-block, span') || titleLink;
-        if (titleText && !titleText.textContent?.includes(`— ${color}`)) {
-          titleText.textContent = `${titleText.textContent?.trim() || ''} — ${color}`;
+        const baseTitle = titleText.textContent?.replace(/\s+—\s+.+$/, '').trim() || '';
+        if (titleText && baseTitle) {
+          titleText.textContent = `${baseTitle} — ${color}`;
         }
       }
     }
 
+    // Soft-reset slides if slideshow API is not ready yet (inline path also used on first paint)
+    if (initialMediaId) {
+      this.querySelectorAll('slideshow-slide').forEach((slide) => {
+        const isMatch = slide.getAttribute('slide-id') === String(initialMediaId);
+        if (isMatch) {
+          slide.removeAttribute('hidden');
+          slide.setAttribute('reveal', '');
+          slide.setAttribute('aria-hidden', 'false');
+        } else if (slide.hasAttribute('variant-image') || slide.hasAttribute('reveal')) {
+          slide.setAttribute('hidden', '');
+          slide.removeAttribute('reveal');
+          slide.setAttribute('aria-hidden', 'true');
+        } else if (slide.getAttribute('aria-hidden') === 'false') {
+          slide.setAttribute('aria-hidden', 'true');
+          slide.setAttribute('hidden', '');
+        }
+      });
+    }
+
+    this.#previousSlideIndex = null;
     this.#initializeCollectionCardVariantImage();
   }
 
@@ -238,6 +294,7 @@ export class ProductCard extends ProductCardLink {
   disconnectedCallback() {
     super.disconnectedCallback();
     this.removeEventListener('click', this.navigateToProduct);
+    window.removeEventListener('pageshow', this.#onPageShow);
   }
 
   #preloadNextPreviewImage() {
